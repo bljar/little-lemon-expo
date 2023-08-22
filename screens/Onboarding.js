@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Alert,
   Image,
   Pressable,
   SafeAreaView,
@@ -11,11 +12,11 @@ import {
   View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AuthContext } from "../components/AuthContext";
 import { validateEmail } from "../utils";
+import { useAuth } from "../context/auth";
 
 export default function OnboardingScreen() {
-  const { signIn } = React.useContext(AuthContext);
+  const { signIn } = useAuth();
 
   const [firstName, onChangeFirstName] = React.useState("");
   const [email, onChangeEmail] = React.useState("");
@@ -26,6 +27,7 @@ export default function OnboardingScreen() {
       await AsyncStorage.setItem(key, jsonValue);
     } catch (e) {
       console.error(e);
+      Alert.alert("Error", e.message);
     }
   };
 
@@ -35,7 +37,7 @@ export default function OnboardingScreen() {
       <ScrollView style={styles.container}>
         <View style={styles.headerContainer}>
           <Image
-            source={require("../assets/logo_text.webp")}
+            source={require("../assets/logo_title.webp")}
             style={{ height: 50, width: 194, padding: 16 }}
           />
         </View>
