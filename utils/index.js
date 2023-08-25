@@ -1,4 +1,6 @@
 import React from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native";
 
 export const AuthContext = React.createContext();
 
@@ -25,3 +27,53 @@ export function validateEmail(email) {
 
   return re.test(email);
 }
+
+export const mergeData = async (key, value) => {
+  try {
+    await AsyncStorage.mergeItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.error(e);
+    Alert.alert("Merge Data Error", e.message);
+  } finally {
+    Alert.alert("Success", "Your changes has been saved!");
+  }
+};
+
+export const storeData = async (key, value) => {
+  try {
+    const jsonValue = JSON.stringify(value);
+    await AsyncStorage.setItem(key, jsonValue);
+  } catch (e) {
+    console.error(e);
+    Alert.alert("Store Data Error", e.message);
+  }
+};
+
+export const getData = async (key, data) => {
+  try {
+    const value = await AsyncStorage.getItem(key);
+    data = value != null ? JSON.parse(value) : {};
+  } catch (e) {
+    console.error(e);
+    Alert.alert("Reading Data Error", e.message);
+  }
+};
+
+export const clearAllData = async () => {
+  try {
+    await AsyncStorage.clear();
+  } catch (e) {
+    console.error(e);
+    Alert.alert("Clear Data Error", e.message);
+  }
+};
+
+export const isDiffJSON = (a, b) => {
+  let ret = {};
+  for (const i in b) {
+    if (!Object.hasOwnProperty.call(a, i) || b[i] !== a[i]) {
+      ret[i] = b[i];
+    }
+  }
+  return Boolean(Object.keys(ret).length);
+};

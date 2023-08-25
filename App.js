@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as SplashScreen from "expo-splash-screen";
-import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert, Image, Pressable } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AuthContext } from "./context/auth";
@@ -17,19 +18,23 @@ export default function App({ navigation }) {
   const [isOnboardingCompleted, setIsOnboarding] = React.useState(false);
 
   React.useEffect(() => {
-    const bootstrapAsync = async () => {
+    (async () => {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const value = await AsyncStorage.getItem("customerInfo");
+        if (value !== null) {
+          const keyInCustomerData = Object.keys(JSON.parse(value)).length;
+          if (keyInCustomerData >= 4) {
+            setIsOnboarding(true);
+          }
+        }
+        // await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (e) {
         console.error(e);
         Alert.alert("Error", e.message);
       } finally {
-        setIsOnboarding(true);
         SplashScreen.hideAsync();
       }
-    };
-
-    bootstrapAsync();
+    })();
   }, []);
 
   const authContext = React.useMemo(
