@@ -1,39 +1,26 @@
 import React from "react";
-import { Pressable, SafeAreaView, Text, View, StyleSheet } from "react-native";
+import {
+  Pressable,
+  SafeAreaView,
+  Text,
+  View,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { ProgressBar } from "react-native-paper";
-import { validateEmail } from "../utils";
+import { mergeData, validateEmail } from "../utils";
 import InputField from "./InputField";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../context/auth";
 
-const ContactDetail = ({ prevStep }) => {
+const ContactDetail = ({ customerInfo, setCutomerInfo, prevStep }) => {
   const { signIn } = useAuth();
+  const isInputValid = validateEmail(customerInfo.email);
 
-  const [customerInfo, setCutomerInfo] = React.useState({
-    email: "",
-    telp: "",
-  });
-
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const value = await AsyncStorage.getItem("customerInfo");
-        if (value !== null) {
-          jsonValue = JSON.parse(value);
-          setCutomerInfo((prevState) => ({
-            ...prevState,
-            email: jsonValue.email ? jsonValue.email : "",
-            telp: jsonValue.telp ? jsonValue.telp : "",
-          }));
-        }
-      } catch (e) {
-        console.error(e);
-        Alert.alert("Reading Data Error", e.message);
-      }
-    })();
-  }, []);
-
-  const isValid = () => validateEmail(customerInfo.email);
+  const handleSignIn = () => {
+    mergeData("customerInfo", customerInfo);
+    signIn();
+    Alert.alert("Registration Complete", `Welcome, ${customerInfo.firstName}!`);
+  };
 
   return (
     <SafeAreaView>
@@ -48,66 +35,30 @@ const ContactDetail = ({ prevStep }) => {
       <InputField
         label="Email"
         value={customerInfo.email}
-        onChange={(e) =>
-          setCutomerInfo((prev) => ({
-            ...prev,
-            email: e,
-          }))
-        }
+        onChange={(e) => setCutomerInfo(e, "email")}
         keyboardType="email-address"
       />
       <InputField
         label="Telephone"
-        value={customerInfo.telp}
-        onChange={(e) =>
-          setCutomerInfo((prev) => ({
-            ...prev,
-            telp: e,
-          }))
-        }
+        value={customerInfo.phoneNumber}
+        onChange={(e) => setCutomerInfo(e, "phoneNumber")}
         keyboardType="number-pad"
       />
       <View style={styles.buttonContainer}>
         <Pressable
           style={styles.button}
-          onPress={() => {
-            (async () => {
-              try {
-                await AsyncStorage.mergeItem(
-                  "customerInfo",
-                  JSON.stringify(customerInfo)
-                );
-              } catch (e) {
-                console.error(e);
-                Alert.alert("Merge Data Error", e.message);
-              } finally {
-                prevStep();
-              }
-            })();
-          }}
+          onPress={() => mergeData("customerInfo", customerInfo) && prevStep()}
         >
           <Text style={styles.buttonText}>Prev</Text>
         </Pressable>
         <Pressable
-          disabled={!isValid()}
-          style={isValid() ? styles.button : styles.buttonDisable}
-          onPress={() => {
-            (async () => {
-              try {
-                await AsyncStorage.mergeItem(
-                  "customerInfo",
-                  JSON.stringify(customerInfo)
-                );
-              } catch (e) {
-                console.error(e);
-                Alert.alert("Merge Data Error", e.message);
-              } finally {
-                signIn();
-              }
-            })();
-          }}
+          disabled={!isInputValid}
+          style={isInputValid ? styles.button : styles.buttonDisable}
+          onPress={() => handleSignIn()}
         >
-          <Text style={isValid ? styles.buttonText : styles.buttonTextDisable}>
+          <Text
+            style={isInputValid ? styles.buttonText : styles.buttonTextDisable}
+          >
             Done
           </Text>
         </Pressable>

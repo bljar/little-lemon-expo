@@ -14,7 +14,7 @@ SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator();
 
-export default function App({ navigation }) {
+export default function App() {
   const [isOnboardingCompleted, setIsOnboarding] = React.useState(false);
 
   React.useEffect(() => {
@@ -22,8 +22,8 @@ export default function App({ navigation }) {
       try {
         const value = await AsyncStorage.getItem("customerInfo");
         if (value !== null) {
-          const keyInCustomerData = Object.keys(JSON.parse(value)).length;
-          if (keyInCustomerData >= 4) {
+          const jsonValue = JSON.parse(value);
+          if (Object.keys(jsonValue).length >= 4) {
             setIsOnboarding(true);
           }
         }

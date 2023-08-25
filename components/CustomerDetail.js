@@ -1,41 +1,10 @@
 import React from "react";
-import {
-  Alert,
-  Pressable,
-  SafeAreaView,
-  Text,
-  View,
-  StyleSheet,
-} from "react-native";
+import { Pressable, SafeAreaView, Text, View, StyleSheet } from "react-native";
 import InputField from "./InputField";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mergeData } from "../utils";
 
-const CustomerDetail = ({ nextStep }) => {
-  const [customerInfo, setCutomerInfo] = React.useState({
-    firstName: "",
-    lastName: "",
-  });
-
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const value = await AsyncStorage.getItem("customerInfo");
-        if (value !== null) {
-          jsonValue = JSON.parse(value);
-          setCutomerInfo((prevState) => ({
-            ...prevState,
-            firstName: jsonValue.firstName ? jsonValue.firstName : "",
-            lastName: jsonValue.lastName ? jsonValue.lastName : "",
-          }));
-        }
-      } catch (e) {
-        console.error(e);
-        Alert.alert("Error", e.message);
-      }
-    })();
-  }, []);
-
-  const isValid = () =>
+const CustomerDetail = ({ customerInfo, setCutomerInfo, nextStep }) => {
+  const isInputValid =
     customerInfo.firstName.length >= 1 && customerInfo.lastName.length >= 1;
 
   return (
@@ -44,45 +13,21 @@ const CustomerDetail = ({ nextStep }) => {
       <InputField
         label="First Name"
         value={customerInfo.firstName}
-        onChange={(e) =>
-          setCutomerInfo((prev) => ({
-            ...prev,
-            firstName: e,
-          }))
-        }
+        onChange={(e) => setCutomerInfo(e, "firstName")}
       />
       <InputField
         label="Last Name"
         value={customerInfo.lastName}
-        onChange={(e) =>
-          setCutomerInfo((prev) => ({
-            ...prev,
-            lastName: e,
-          }))
-        }
+        onChange={(e) => setCutomerInfo(e, "lastName")}
       />
       <View style={styles.buttonContainer}>
         <Pressable
-          disabled={!isValid()}
-          style={isValid() ? styles.button : styles.buttonDisable}
-          onPress={() => {
-            (async () => {
-              try {
-                await AsyncStorage.mergeItem(
-                  "customerInfo",
-                  JSON.stringify(customerInfo)
-                );
-              } catch (e) {
-                console.error(e);
-                Alert.alert("Merge Data Error", e.message);
-              } finally {
-                nextStep();
-              }
-            })();
-          }}
+          disabled={!isInputValid}
+          style={isInputValid ? styles.button : styles.buttonDisable}
+          onPress={() => mergeData("customerInfo", customerInfo) && nextStep()}
         >
           <Text
-            style={isValid() ? styles.buttonText : styles.buttonTextDisable}
+            style={isInputValid ? styles.buttonText : styles.buttonTextDisable}
           >
             Next
           </Text>

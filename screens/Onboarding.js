@@ -1,4 +1,5 @@
 import React from "react";
+import * as SplashScreen from "expo-splash-screen";
 import {
   Alert,
   Image,
@@ -8,14 +9,48 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { useAuth } from "../context/auth";
 import CustomerDetail from "../components/CustomerDetail";
 import ContactDetail from "../components/ContactDetail";
-import { getData } from "../utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 export default function OnboardingScreen() {
   const [step, setStep] = React.useState(1);
+  const [userData, setUserData] = React.useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+  });
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const value = await AsyncStorage.getItem("customerInfo");
+        if (value !== null) {
+          const jsonValue = JSON.parse(value);
+          setUserData((prevData) => ({
+            ...prevData,
+            ...jsonValue,
+          }));
+        }
+      } catch (e) {
+        console.error(e);
+        Alert.alert("Error", e.message);
+      } finally {
+        SplashScreen.hideAsync();
+      }
+    })();
+  }, []);
+
+  const handleChangeUserData = (it, key) => {
+    setUserData((prevData) => ({
+      ...prevData,
+      [key]: it,
+    }));
+  };
 
   return (
     <SafeAreaView>
@@ -28,9 +63,17 @@ export default function OnboardingScreen() {
           />
         </View>
         {step == 1 ? (
-          <CustomerDetail nextStep={() => setStep(2)} />
+          <CustomerDetail
+            customerInfo={userData}
+            setCutomerInfo={handleChangeUserData}
+            nextStep={() => setStep(2)}
+          />
         ) : (
-          <ContactDetail prevStep={() => setStep(1)} />
+          <ContactDetail
+            customerInfo={userData}
+            setCutomerInfo={handleChangeUserData}
+            prevStep={() => setStep(1)}
+          />
         )}
       </ScrollView>
     </SafeAreaView>

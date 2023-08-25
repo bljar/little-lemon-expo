@@ -46,22 +46,21 @@ const MyCheckBox = ({ label, value, onChange }) => (
 export default function ProfileScreen() {
   const { signOut } = useAuth();
 
-  const [customerInfo, setCutomerInfo] = React.useState({
+  const [userData, setUserData] = React.useState({
     firstName: "",
     lastName: "",
     email: "",
-    telp: "",
-  });
-  const [emailPref, setEmailPref] = React.useState({
-    orderStatus: true,
-    passwordChanges: true,
-    specialOffers: true,
-    newsletter: true,
+    phoneNumber: "",
+    emailNotification: {
+      orderStatus: true,
+      passwordChanges: true,
+      specialOffers: true,
+      newsletter: true,
+    },
   });
 
   const [defaultCustomerInfo, setDefaultCustomerInfo] =
-    React.useState(customerInfo);
-  const [defaultEmailPref, setDefaultEmailPref] = React.useState(emailPref);
+    React.useState(userData);
 
   React.useEffect(() => {
     (async () => {
@@ -69,25 +68,13 @@ export default function ProfileScreen() {
         const cusValue = await AsyncStorage.getItem("customerInfo");
         if (cusValue !== null) {
           const cusValueJSON = JSON.parse(cusValue);
-          setCutomerInfo((prevState) => ({
+          setUserData((prevState) => ({
             ...prevState,
             ...cusValueJSON,
           }));
           setDefaultCustomerInfo((prevState) => ({
             ...prevState,
             ...cusValueJSON,
-          }));
-        }
-        const emailValue = await AsyncStorage.getItem("emailPref");
-        if (emailValue !== null) {
-          const emailValueJSON = JSON.parse(emailValue);
-          setEmailPref((prevState) => ({
-            ...prevState,
-            ...emailValueJSON,
-          }));
-          setDefaultEmailPref((prevState) => ({
-            ...prevState,
-            ...emailValueJSON,
           }));
         }
       } catch (e) {
@@ -97,32 +84,42 @@ export default function ProfileScreen() {
     })();
   }, []);
 
-  const isDataChange =
-    isDiffJSON(defaultCustomerInfo, customerInfo) ||
-    isDiffJSON(defaultEmailPref, emailPref);
+  const isDataChange = isDiffJSON(defaultCustomerInfo, userData);
 
   const handleChangeCustomerInfo = (it, key) => {
-    setCutomerInfo((prev) => ({
+    setUserData((prev) => ({
       ...prev,
       [key]: it,
     }));
   };
 
   const handleChangeEmailNotif = (key) => {
-    setEmailPref((prev) => ({
+    setUserData((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      emailNotification: {
+        ...prev.emailNotification,
+        [key]: !prev.emailNotification[key],
+      },
     }));
   };
 
+  const handleSaveChanges = () => {
+    mergeData("customerInfo", userData);
+    setDefaultCustomerInfo((prevDefault) => ({
+      ...prevDefault,
+      ...userData,
+    }));
+    Alert.alert("Success", "Your changes has been saved!");
+  };
+
   const ConfirmDeleteData = () =>
-    Alert.alert("Logging out...", "Remember my login info?", [
+    Alert.alert("Are you sure?", "This will remove all your data", [
       {
         text: "Remove",
         onPress: () => clearAllData() && signOut(),
         style: "destructive",
       },
-      { text: "Keep", onPress: () => signOut() },
+      { text: "Cancel" },
     ]);
 
   return (
@@ -131,66 +128,57 @@ export default function ProfileScreen() {
         <Text style={styles.titleText}>Personal information</Text>
         <InputField
           label="First Name"
-          value={customerInfo.firstName}
+          value={userData.firstName}
           onChange={(e) => handleChangeCustomerInfo(e, "firstName")}
         />
         <InputField
           label="Last Name"
-          value={customerInfo.lastName}
+          value={userData.lastName}
           onChange={(e) => handleChangeCustomerInfo(e, "lastName")}
         />
         <InputField
           label="Email"
-          value={customerInfo.email}
+          value={userData.email}
           onChange={(e) => handleChangeCustomerInfo(e, "email")}
         />
         <InputField
           label="Phone number"
-          value={customerInfo.telp}
-          onChange={(e) => handleChangeCustomerInfo(e, "telp")}
+          value={userData.phoneNumber}
+          onChange={(e) => handleChangeCustomerInfo(e, "phoneNumber")}
         />
         <View style={styles.emailNotifContainer}>
           <Text style={styles.titleText}>Email notifications</Text>
           <MyCheckBox
             label="Order statuses"
-            value={emailPref.orderStatus}
+            value={userData.emailNotification.orderStatus}
             onChange={() => handleChangeEmailNotif("orderStatus")}
           />
           <MyCheckBox
             label="Password changes"
-            value={emailPref.passwordChanges}
+            value={userData.emailNotification.passwordChanges}
             onChange={() => handleChangeEmailNotif("passwordChanges")}
           />
           <MyCheckBox
             label="Special offers"
-            value={emailPref.specialOffers}
+            value={userData.emailNotification.specialOffers}
             onChange={() => handleChangeEmailNotif("specialOffers")}
           />
           <MyCheckBox
             label="Newsletter"
-            value={emailPref.newsletter}
+            value={userData.emailNotification.newsletter}
             onChange={() => handleChangeEmailNotif("newsletter")}
           />
         </View>
-        <Pressable
-          style={styles.button}
-          onPress={() => {
-            ConfirmDeleteData();
-          }}
-        >
+        <Pressable style={styles.button} onPress={() => ConfirmDeleteData()}>
           <Text style={styles.buttonText}>Log out</Text>
         </Pressable>
         <View style={styles.buttonSmallContainer}>
           <Pressable
             disabled={!isDataChange}
             onPress={() => {
-              setCutomerInfo((prevState) => ({
-                ...prevState,
+              setUserData((prevData) => ({
+                ...prevData,
                 ...defaultCustomerInfo,
-              }));
-              setEmailPref((prevState) => ({
-                ...prevState,
-                ...defaultEmailPref,
               }));
             }}
             style={[
@@ -214,10 +202,7 @@ export default function ProfileScreen() {
           </Pressable>
           <Pressable
             disabled={!isDataChange}
-            onPress={() => {
-              mergeData("customerInfo", customerInfo);
-              mergeData("emailPref", emailPref);
-            }}
+            onPress={() => handleSaveChanges()}
             style={[
               styles.buttonSmall,
               {
