@@ -16,6 +16,7 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [isOnboardingCompleted, setIsOnboarding] = React.useState(false);
+  const [isAppReady, setIsAppReady] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
@@ -32,6 +33,7 @@ export default function App() {
         console.error(e);
         Alert.alert("Error", e.message);
       } finally {
+        setIsAppReady(true);
         SplashScreen.hideAsync();
       }
     })();
@@ -44,6 +46,8 @@ export default function App() {
     }),
     []
   );
+
+  if (!isAppReady) return null;
 
   return (
     <AuthContext.Provider value={authContext}>
