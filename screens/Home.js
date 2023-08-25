@@ -20,7 +20,6 @@ const API_URL =
 const sections = ["Starters", "Mains", "Desserts", "Drinks"];
 
 export default function HomeScreen() {
-  let menuItems = [];
   const [data, setData] = React.useState([]);
   const [searchBarText, setSearchBarText] = React.useState("");
   const [query, setQuery] = React.useState("");
@@ -49,7 +48,6 @@ export default function HomeScreen() {
         if (!data.length) {
           setData(menuItems);
         }
-        console.log(data);
       } catch (error) {
         console.error(error);
         Alert.alert("Data Error", error.message);
