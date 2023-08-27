@@ -55,3 +55,9 @@ export const isDiffJSON = (a, b) => {
   }
   return Boolean(Object.keys(ret).length);
 };
+
+export const createInitial = (firstName, lastName) => {
+  if (firstName && lastName) return firstName[0] + lastName[0];
+  else if (firstName && firstName.length > 1) return firstName.substring(0, 2);
+  else return "";
+};
